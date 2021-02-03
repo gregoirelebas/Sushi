@@ -518,6 +518,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1024853644}
+  ignoreY: 1
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -1205,6 +1206,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
+  jumpSpeed: 5
+  jumpHeight: 3
 --- !u!4 &1024853644
 Transform:
   m_ObjectHideFlags: 0
