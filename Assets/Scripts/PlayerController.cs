@@ -4,20 +4,24 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float moveSpeed = 10.0f;
+	[Header("Move speed")]
+	[SerializeField] private float moveSpeed = 10.0f;
 	[SerializeField] private float jumpSpeed = 5.0f;
 	[SerializeField] private float minJumpSpeed = 1.0f;
 
+	[Header("Inertia")]
 	[SerializeField] private float jumpInertia = 2.0f;
 	[SerializeField] private float fallInertia = 2.0f;
-	
+
+	[Header("Jump limits")]
 	[SerializeField] private float groundHeight = 0.0f;
 	[SerializeField] private float jumpHeight = 3.0f;
-	[SerializeField] private float jumpCoolDown = 1.0f;
+	[SerializeField] private float jumpCoolDown = 0.5f;
 
 	private float currentJumpSpeed = 0.0f;
 	private float currentFallSpeed = 0.0f;
 
+	private bool canJump = true;
 	private bool isJumping = false;
 	private bool isFalling = false;
 
@@ -27,27 +31,25 @@ public class PlayerController : MonoBehaviour
 
 		position.x += moveSpeed * Time.deltaTime;
 
-		if (Input.GetKeyDown(KeyCode.Space) && !isJumping && !isFalling)
+		if (Input.GetKeyDown(KeyCode.Space) && canJump)
 		{
 			isJumping = true;
+			canJump = false;
 
 			currentJumpSpeed = jumpSpeed;
 		}
 
-		if (isFalling)
-		{
-			currentFallSpeed += fallInertia * Time.deltaTime;
+		MovePlayerV(ref position);
 
-			position.y -= currentFallSpeed * Time.deltaTime;
+		transform.position = position;
+	}
 
-			if (position.y <= groundHeight)
-			{
-				position.y = groundHeight;
-
-				isFalling = false;
-			}
-		}
-		else if (isJumping)
+	/// <summary>
+	/// Move player along vertical axis.
+	/// </summary>
+	private void MovePlayerV(ref Vector3 position)
+	{
+		if (isJumping)
 		{
 			currentJumpSpeed -= jumpInertia * Time.deltaTime;
 			currentJumpSpeed = Mathf.Clamp(currentJumpSpeed, minJumpSpeed, jumpSpeed);
@@ -64,7 +66,23 @@ public class PlayerController : MonoBehaviour
 				isFalling = true;
 			}
 		}
+		else if (isFalling)
+		{
+			currentFallSpeed += fallInertia * Time.deltaTime;
 
-		transform.position = position;
+			position.y -= currentFallSpeed * Time.deltaTime;
+
+			if (position.y <= groundHeight)
+			{
+				position.y = groundHeight;
+
+				isFalling = false;
+
+				this.DelayedAction(() =>
+				{
+					canJump = true;
+				}, jumpCoolDown);
+			}
+		}
 	}
 }
