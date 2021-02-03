@@ -6,10 +6,20 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 10.0f;
 	[SerializeField] private float jumpSpeed = 5.0f;
-	[SerializeField] private float jumpHeight = 3.0f;
+	[SerializeField] private float minJumpSpeed = 1.0f;
 
-	private bool jumping = false;
-	private bool falling = false;
+	[SerializeField] private float jumpInertia = 2.0f;
+	[SerializeField] private float fallInertia = 2.0f;
+	
+	[SerializeField] private float groundHeight = 0.0f;
+	[SerializeField] private float jumpHeight = 3.0f;
+	[SerializeField] private float jumpCoolDown = 1.0f;
+
+	private float currentJumpSpeed = 0.0f;
+	private float currentFallSpeed = 0.0f;
+
+	private bool isJumping = false;
+	private bool isFalling = false;
 
 	private void Update()
 	{
@@ -17,32 +27,41 @@ public class PlayerController : MonoBehaviour
 
 		position.x += moveSpeed * Time.deltaTime;
 
-		if (Input.GetKeyDown(KeyCode.Space) && !jumping && !falling)
+		if (Input.GetKeyDown(KeyCode.Space) && !isJumping && !isFalling)
 		{
-			jumping = true;
+			isJumping = true;
+
+			currentJumpSpeed = jumpSpeed;
 		}
 
-		if (jumping)
+		if (isFalling)
 		{
-			position.y += jumpSpeed * Time.deltaTime;
+			currentFallSpeed += fallInertia * Time.deltaTime;
+
+			position.y -= currentFallSpeed * Time.deltaTime;
+
+			if (position.y <= groundHeight)
+			{
+				position.y = groundHeight;
+
+				isFalling = false;
+			}
+		}
+		else if (isJumping)
+		{
+			currentJumpSpeed -= jumpInertia * Time.deltaTime;
+			currentJumpSpeed = Mathf.Clamp(currentJumpSpeed, minJumpSpeed, jumpSpeed);
+
+			position.y += currentJumpSpeed * Time.deltaTime;
 
 			if (position.y >= jumpHeight)
 			{
 				position.y = jumpHeight;
 
-				jumping = false;
-				falling = true;
-			}
-		}		
-		else if (falling)
-		{
-			position.y -= jumpSpeed * Time.deltaTime;
+				currentFallSpeed = currentJumpSpeed;
 
-			if (position.y <= 0.0f)
-			{
-				position.y = 0.0f;
-
-				falling = false;
+				isJumping = false;
+				isFalling = true;
 			}
 		}
 
